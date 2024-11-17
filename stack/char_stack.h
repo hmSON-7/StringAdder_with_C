@@ -6,9 +6,11 @@
 typedef struct {
     char data[MAX_STACK_SIZE];
     int top;
+    int negative;
 } CharStack;
 
 void initStack(CharStack *stack);
+void checkNegative(CharStack *stack, int negative);
 int isEmpty(CharStack *stack);
 int isFull(CharStack *stack);
 void push(CharStack *stack, char value);

@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 #include "char_stack.h"
 
 #define STR_MAX_SIZE 300
 #define LIST_MAX_SIZE 150
 
-int addPeeks(CharStack *stackList, int listIndex, int *carry, int *flag);
+int addPeeks(CharStack *stackList, int listIndex, int *carry, int *flag, int *checkResultNegative);
 
 int main() {
     // 1단계 : 가산기 초기화 및 세팅
@@ -23,11 +24,17 @@ int main() {
     printf("===========================================\n\n");
 
     // 3단계 : 문자열 분리 및 숫자 추출
-    int readerCnt = 0, listIndex = 0;
+    int readerCnt = 0, listIndex = 0, negativeFlag = 0;
     while (readerCnt < strlen(str)) {
-        if (str[readerCnt] >= '0' && str[readerCnt] <= '9') {
+        if(str[readerCnt] == '-') {
+            checkNegative(&stackList[listIndex], 1);
+            negativeFlag = 1;
+        } else if (str[readerCnt] >= '0' && str[readerCnt] <= '9') {
             push(&stackList[listIndex], str[readerCnt]);
         } else {
+            if(negativeFlag) {
+                negativeFlag = 0;
+            }
             if(!isEmpty(&stackList[listIndex])) {
                 listIndex++;
             }
@@ -40,6 +47,10 @@ int main() {
     }
 
     for(int i=0; i<sizeof(stackList); i++) {
+        if(stackList[i].negative) {
+            printf("-");
+        }
+
         for(int j=0; j<getSize(&stackList[i]); j++) {
             printf("%c", stackList[i].data[j]);
         }
@@ -59,11 +70,12 @@ int main() {
     // 더한 값의 10의 자리수 이상은 캐리 변수에 저장하여 다음 연산에 포함
     // 남은 숫자가 없다면 연산 종료
     int carry = 0;
+    int checkResultNegative = 0;
     CharStack result;
     initStack(&result);
     while(1) {
         int flag = 0;
-        int sum = addPeeks(stackList, listIndex, &carry, &flag);
+        int sum = addPeeks(stackList, listIndex, &carry, &flag, &checkResultNegative);
         // 더 이상 더할 숫자가 없는 경우
         if(flag) {
             // 더 이상 더할 숫자는 없으나 캐리가 남는 경우를 고려
@@ -75,6 +87,9 @@ int main() {
     }
 
     // 5단계 : 연산 결과 출력
+    if(checkResultNegative) {
+        printf("-");
+    }
     while(!isEmpty(&result)) {
         printf("%c", pop(&result));
     }
@@ -83,7 +98,7 @@ int main() {
 }
 
 // 4-1 : 각 스택의 top을 하나씩 가져와 더하는 함수
-int addPeeks(CharStack *stackList, int listIndex, int *carry, int *flag) {
+int addPeeks(CharStack *stackList, int listIndex, int *carry, int *flag, int *checkResultNegative) {
     int sum = *carry;
     *carry = 0;
     *flag = 1;
@@ -93,9 +108,20 @@ int addPeeks(CharStack *stackList, int listIndex, int *carry, int *flag) {
         }
 
         *flag = 0;
-        sum += pop(&stackList[i]) - '0';
+        char n = pop(&stackList[i]) - '0';
+        if(stackList[i].negative) {
+            sum -= n;
+        } else {
+            sum += n;
+        }
     }
 
-    *carry = sum / 10;
-    return sum % 10;
+    if (sum >= 0) {
+        *carry = sum / 10;
+        *checkResultNegative = 0;
+    } else {
+        *carry = abs(sum) / 10 * -1;
+        *checkResultNegative = 1;
+    }
+    return abs(sum) % 10;
 }

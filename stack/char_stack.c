@@ -4,6 +4,11 @@
 
 void initStack(CharStack *stack) {
     stack->top = -1;
+    stack->negative = 0;
+}
+
+void checkNegative(CharStack *stack, int negative) {
+    stack->negative = negative;
 }
 
 int isEmpty(CharStack *stack) {
