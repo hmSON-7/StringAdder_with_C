@@ -3,7 +3,7 @@
 
 #define MAX_STACK_SIZE 150
 
-typedef struct {
+typedef struct char_stack_frame{
     char data[MAX_STACK_SIZE];
     int top;
     int negative;
